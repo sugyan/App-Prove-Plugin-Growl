@@ -2,7 +2,8 @@ use inc::Module::Install;
 name 'App-Prove-Plugin-DesktopNotification';
 all_from 'lib/App/Prove/Plugin/DesktopNotification.pm';
 
-# requires '';
+requires 'Log::Dispatch' => '2.26';
+requires 'Log::Dispatch::DesktopNotification' => 0.01;
 
 tests 't/*.t';
 author_tests 'xt';
