@@ -1,11 +1,11 @@
-This is Perl module App::Prove::Plugin::DesktopNotification.
+This is Perl module App::Prove::Plugin::Growl.
 
 INSTALLATION
 
-App::Prove::Plugin::DesktopNotification installation is straightforward. If your CPAN shell is set up,
+App::Prove::Plugin::Growl installation is straightforward. If your CPAN shell is set up,
 you should just be able to do
 
-    % cpan App::Prove::Plugin::DesktopNotification
+    % cpan App::Prove::Plugin::Growl
 
 Download it, unpack it, then build it as per the usual:
 
@@ -18,9 +18,9 @@ Then install it:
 
 DOCUMENTATION
 
-App::Prove::Plugin::DesktopNotification documentation is available as in POD. So you can do:
+App::Prove::Plugin::Growl documentation is available as in POD. So you can do:
 
-    % perldoc App::Prove::Plugin::DesktopNotification
+    % perldoc App::Prove::Plugin::Growl
 
 to read the documentation online with your favorite pager.
 

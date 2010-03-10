@@ -1,4 +1,4 @@
-package App::Prove::Plugin::DesktopNotification;
+package App::Prove::Plugin::Growl;
 use strict;
 use warnings;
 use Log::Dispatch;
@@ -20,7 +20,7 @@ sub _dispatcher {
         Log::Dispatch::DesktopNotification->new(
             name      => "notify",
             min_level => "debug",
-            app_name  => "App::Prove::Plugin::DesktopNotification",
+            app_name  => "App::Prove::Plugin::Growl",
             title     => "Test Report",
             sticky    => 0,
         ));
@@ -101,15 +101,15 @@ __END__
 
 =head1 NAME
 
-App::Prove::Plugin::DesktopNotification -
+App::Prove::Plugin::Growl -
 
 =head1 SYNOPSIS
 
-  use App::Prove::Plugin::DesktopNotification;
+  use App::Prove::Plugin::Growl;
 
 =head1 DESCRIPTION
 
-App::Prove::Plugin::DesktopNotification is
+App::Prove::Plugin::Growl is
 
 =head1 AUTHOR
 
