@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use Growl::Any;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub load {
     my ($class, $p) = @_;
@@ -12,10 +12,10 @@ sub load {
 
 package TAP::Formatter::GrowlNotify;
 use parent 'TAP::Formatter::Console';
+use Class::Method::Modifiers;
 
-sub summary {
+after 'summary' => sub {
     my ($self, $aggregate, $interrupted) = @_;
-    $self->SUPER::summary($aggregate, $interrupted);
 
     my $growl = Growl::Any->new(
         appname => 'App::Prove::Plugin::Growl',
@@ -39,7 +39,7 @@ sub summary {
         }
         $growl->notify('failed', 'FAIL', $message);
     }
-}
+};
 
 1;
 __END__

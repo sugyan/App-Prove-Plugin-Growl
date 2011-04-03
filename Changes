@@ -1,5 +1,8 @@
 Revision history for Perl extension App::Prove::Plugin::Growl
 
+0.03    Sun Apr  4 01:09:05 2011
+        - use Class::Method::Modifiers
+
 0.02    Sun Apr  3 21:54:26 2011
         - use Growl::Any
 
