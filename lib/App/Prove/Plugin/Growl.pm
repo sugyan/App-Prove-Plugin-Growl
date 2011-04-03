@@ -1,99 +1,44 @@
 package App::Prove::Plugin::Growl;
 use strict;
 use warnings;
-use Log::Dispatch;
-use Log::Dispatch::DesktopNotification;
-our $VERSION = '0.01';
 
-my $dispatcher;
-my %status_icon = (
-    'alert'   => 'AlertCautionIcon.icns',
-    'warning' => 'AlertStopIcon.icns',
-    'info'    => 'ToolbarInfo.icns',
-);
-
-sub _dispatcher {
-    return $dispatcher if $dispatcher;
-
-    $dispatcher = Log::Dispatch->new;
-    $dispatcher->add(
-        Log::Dispatch::DesktopNotification->new(
-            name      => "notify",
-            min_level => "debug",
-            app_name  => "App::Prove::Plugin::Growl",
-            title     => "Test Report",
-            sticky    => 0,
-        ));
-    return $dispatcher;
-}
-
-sub _notify_summary {
-    my $aggregate = shift;
-    my $summary;
-    my $non_zero_exit_status = 0;
-
-    if ($aggregate->all_passed) {
-        $summary = "ALL PASSED\n";
-    } else {
-        local $, = ",";
-        my $total  = $aggregate->total;
-        my $passed = $aggregate->passed;
-        $summary = "${total} planned, only ${passed} passed.\n";
-
-        my @t = $aggregate->descriptions;
-        for my $t (@t) {
-            $t =~ /(t\/.*$)/;
-            my $tfile = $1;
-            my ($parser) = $aggregate->parsers($t);
-            if (my @r = $parser->failed()) {
-                $summary .= "Failed test(s) in $tfile: @r\n";
-            }
-            if ( my $exit = $parser->exit ) {
-                $summary .= "  Non-zero exit status: $tfile\n";
-                $non_zero_exit_status = 1;
-            }
-        }
-    }
-
-    for (split(/\n(?!  )/, $summary )) {
-        s/ +/ /gs;
-        my $status = $non_zero_exit_status ? 'alert' : $aggregate->all_passed ? 'info' : 'warning';
-        my $notify = _dispatcher->remove("notify");
-        $notify->{icon_file} = '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/' .
-            ($status_icon{$status} || 'ToolbarInfo.icns');
-        _dispatcher->add($notify);
-        _dispatcher->$status("$_\n");
-    }
-}
+use Growl::Any;
+our $VERSION = '0.02';
 
 sub load {
-    no warnings 'redefine';
-    *my_runtest = sub {
-        my ( $self, $args, $harness_class, @tests ) = @_;
-        my $harness = $harness_class->new($args);
+    my ($class, $p) = @_;
+    $p->{app_prove}->formatter('TAP::Formatter::GrowlNotify');
+}
 
-        my $state = $self->state_manager;
+package TAP::Formatter::GrowlNotify;
+use parent 'TAP::Formatter::Console';
 
-        $harness->callback(
-            after_test => sub {
-                $state->observe_test(@_);
+sub summary {
+    my ($self, $aggregate, $interrupted) = @_;
+    $self->SUPER::summary($aggregate, $interrupted);
+
+    my $growl = Growl::Any->new(
+        appname => 'App::Prove::Plugin::Growl',
+        events => ['passed', 'failed'],
+    );
+
+    my $total  = $aggregate->total;
+    my $passed = $aggregate->passed;
+
+    if ($aggregate->all_passed) {
+        $growl->notify('passed', 'PASS', 'All tests successful.');
+    }
+    if ($total != $passed or $aggregate->has_problems) {
+        my $message = '';
+        for my $test ($aggregate->descriptions) {
+            my ($parser) = $aggregate->parsers($test);
+            if (my @r = $parser->failed) {
+                $message .= sprintf "$test (Wstat: %d Tests: %d Failed: %d)\n",
+                    $parser->wait, $parser->tests_run, scalar $parser->failed;
             }
-        );
-
-        $harness->callback(
-            after_runtests => sub {
-                $state->commit(@_);
-                _notify_summary(@_);
-            }
-        );
-
-        my $aggregator = $harness->runtests(@tests);
-
-        return !$aggregator->has_errors;
-    };
-    *App::Prove::_runtests = \&my_runtest;
-
-    return 1;
+        }
+        $growl->notify('failed', 'FAIL', $message);
+    }
 }
 
 1;
